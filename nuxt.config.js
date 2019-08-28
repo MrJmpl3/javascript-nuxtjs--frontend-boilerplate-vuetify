@@ -1,3 +1,14 @@
+const sass = require('sass');
+const fibers = require('fibers');
+const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
+const nodeExternals = require('webpack-node-externals');
+
+const webpackPlugins = () => {
+  const plugins = [];
+  plugins.push(new VuetifyLoaderPlugin());
+  return plugins;
+};
+
 export default {
   mode: 'universal',
   /*
@@ -27,7 +38,7 @@ export default {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: [],
+  plugins: ['@/plugins/vuetify.js'],
   /*
    ** Nuxt.js dev-modules
    */
@@ -52,9 +63,30 @@ export default {
    ** Build configuration
    */
   build: {
+    transpile: [/^vuetify/],
+    loaders: {
+      sass: {
+        implementation: sass,
+        fiber: fibers,
+        indentedSyntax: true
+      },
+      scss: {
+        implementation: sass,
+        fiber: fibers
+      }
+    },
+    plugins: webpackPlugins(),
     /*
      ** You can extend webpack config here
      */
-    extend(config, ctx) {}
+    extend(config, ctx) {
+      if (process.server) {
+        config.externals = [
+          nodeExternals({
+            whitelist: [/^vuetify/]
+          })
+        ];
+      }
+    }
   }
-}
+};
